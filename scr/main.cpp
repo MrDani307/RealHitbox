@@ -74,12 +74,7 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             if (!source)
                 continue;
 
-            /*
-             * Create a real Geometry Dash block.
-             *
-             * Object ID 1 is a normal solid block and therefore
-             * provides actual player collision.
-             */
+            // Create a real solid GD block.
             auto hitbox = this->createObject(
                 1,
                 source->getPosition(),
@@ -89,26 +84,18 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             if (!hitbox)
                 continue;
 
-            /*
-             * Match the source object's transform.
-             */
+            // Match the source transform.
             hitbox->setRotation(source->getRotation());
             hitbox->setFlipX(source->isFlipX());
             hitbox->setFlipY(source->isFlipY());
 
-            /*
-             * Calculate the size of the selected object.
-             *
-             * A normal block is approximately 30x30 editor units.
-             */
+            // Calculate the source object's dimensions.
             auto size = source->getContentSize();
 
-            float width =
-                size.width * source->getScaleX();
+            float width = size.width * source->getScaleX();
+            float height = size.height * source->getScaleY();
 
-            float height =
-                size.height * source->getScaleY();
-
+            // Normal solid block = 30x30 editor units.
             float sx = width / 30.f;
             float sy = height / 30.f;
 
@@ -118,34 +105,16 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             if (sy < 0.01f)
                 sy = 0.01f;
 
-            /*
-             * Scale the collision block.
-             */
+            // Scale the collision block.
             static_cast<cocos2d::CCNode*>(hitbox)->setScale(
                 sx,
                 sy
             );
 
-            /*
-             * Extended Collision makes the collision box follow
-             * large object scaling more accurately.
-             *
-             * 101 is the Geometry Dash object property used for
-             * Extended Collision.
-             */
-            hitbox->m_editorProperties[101] = 1;
-
-            /*
-             * Hide the actual block visually.
-             * The GameObject itself remains in the level, so
-             * its collision remains active during gameplay.
-             */
+            // Hide the collision block visually.
             hitbox->setOpacity(0);
 
-            /*
-             * Keep the generated object synchronized with
-             * the editor.
-             */
+            // Update the editor.
             this->objectMoved(hitbox);
         }
     }
