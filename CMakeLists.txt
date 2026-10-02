@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.21)
+
 project(RealHitbox VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -12,12 +13,9 @@ add_library(${PROJECT_NAME} SHARED
     src/main.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    $ENV{GEODE_SDK}/bindings
-)
-
-target_link_libraries(${PROJECT_NAME}
-    $ENV{GEODE_SDK}/build/geode.loader.lib
+add_subdirectory(
+    $ENV{GEODE_SDK}
+    ${CMAKE_CURRENT_BINARY_DIR}/geode
 )
 
 setup_geode_mod(${PROJECT_NAME})
