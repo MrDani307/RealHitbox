@@ -1,0 +1,13 @@
+{
+    "geode": "1.8.0",
+    "gd": {
+        "android": "2.2.144"
+    },
+    "id": "daniel.realhitbox",
+    "name": "Real Hitbox",
+    "version": "v0.1.0",
+    "developer": "Daniel",
+    "description": "Minimal editor-only real block hitbox prototype.",
+    "repository": "https://github.com/",
+    "settings": {}
+}
