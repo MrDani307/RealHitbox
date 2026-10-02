@@ -10,7 +10,7 @@ if (NOT DEFINED ENV{GEODE_SDK})
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-    src/main.cpp
+    scr/main.cpp
 )
 
 add_subdirectory(
