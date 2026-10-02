@@ -12,7 +12,6 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
         if (!LevelEditorLayer::init(level, noUI))
             return false;
 
-        // Don't add our button when the editor is created without UI.
         if (noUI)
             return true;
 
@@ -71,14 +70,16 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             return;
         }
 
-        // CCARRAY_FOREACH was removed in Geode 5.
-        // CCArrayExt is the replacement.
         for (auto source : CCArrayExt<GameObject*>(selected)) {
             if (!source)
                 continue;
 
-            // Create a real Geometry Dash block through the editor.
-            // This also properly registers it in LevelEditorLayer.
+            /*
+             * Create a real Geometry Dash block.
+             *
+             * Object ID 1 is a normal solid block and therefore
+             * provides actual player collision.
+             */
             auto hitbox = this->createObject(
                 1,
                 source->getPosition(),
@@ -88,33 +89,63 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             if (!hitbox)
                 continue;
 
+            /*
+             * Match the source object's transform.
+             */
             hitbox->setRotation(source->getRotation());
             hitbox->setFlipX(source->isFlipX());
             hitbox->setFlipY(source->isFlipY());
 
-            // A normal GD block is 30x30 editor units.
-            // Match the source object's visible content bounds
-            // using its current scale.
+            /*
+             * Calculate the size of the selected object.
+             *
+             * A normal block is approximately 30x30 editor units.
+             */
             auto size = source->getContentSize();
 
-            float sx = (size.width * source->getScaleX()) / 30.f;
-            float sy = (size.height * source->getScaleY()) / 30.f;
+            float width =
+                size.width * source->getScaleX();
 
-            if (sx <= 0.f)
-                sx = 1.f;
+            float height =
+                size.height * source->getScaleY();
 
-            if (sy <= 0.f)
-                sy = 1.f;
+            float sx = width / 30.f;
+            float sy = height / 30.f;
 
-            // Explicitly call CCNode's setScale to avoid the
-            // RealHitboxEditor::setScale name collision.
-            static_cast<cocos2d::CCNode*>(hitbox)->setScale(sx, sy);
+            if (sx < 0.01f)
+                sx = 0.01f;
 
-            // Hide the visual sprite while keeping the actual
-            // Geometry Dash GameObject and its collision.
+            if (sy < 0.01f)
+                sy = 0.01f;
+
+            /*
+             * Scale the collision block.
+             */
+            static_cast<cocos2d::CCNode*>(hitbox)->setScale(
+                sx,
+                sy
+            );
+
+            /*
+             * Extended Collision makes the collision box follow
+             * large object scaling more accurately.
+             *
+             * 101 is the Geometry Dash object property used for
+             * Extended Collision.
+             */
+            hitbox->m_editorProperties[101] = 1;
+
+            /*
+             * Hide the actual block visually.
+             * The GameObject itself remains in the level, so
+             * its collision remains active during gameplay.
+             */
             hitbox->setOpacity(0);
 
-            // Tell the editor that the object was modified.
+            /*
+             * Keep the generated object synchronized with
+             * the editor.
+             */
             this->objectMoved(hitbox);
         }
     }
