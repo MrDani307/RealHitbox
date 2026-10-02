@@ -47,6 +47,19 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
         button->setPosition({28.f, 150.f});
 
         menu->addChild(button);
+
+        // Version text
+        auto version = CCLabelBMFont::create(
+            "Real Hitbox 2.1",
+            "goldFont.fnt"
+        );
+
+        if (version) {
+            version->setScale(0.32f);
+            version->setPosition({28.f, 125.f});
+            menu->addChild(version);
+        }
+
         this->addChild(menu, 1000);
 
         m_fields->hitboxButton = button;
@@ -62,7 +75,7 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
 
         if (selected->count() == 0) {
             FLAlertLayer::create(
-                "Real Hitbox",
+                "Real Hitbox 2.1",
                 "Select one or more objects first.",
                 "OK"
             )->show();
@@ -70,52 +83,49 @@ class $modify(RealHitboxEditor, LevelEditorLayer) {
             return;
         }
 
-        for (auto source : CCArrayExt<GameObject*>(selected)) {
-            if (!source)
+        int changed = 0;
+
+        for (auto object : CCArrayExt<GameObject*>(selected)) {
+            if (!object)
                 continue;
 
-            // Create a real solid GD block.
-            auto hitbox = this->createObject(
-                1,
-                source->getPosition(),
-                false
-            );
+            /*
+             * Turn the selected object itself into a solid object.
+             *
+             * No new GameObject is created here.
+             */
+            object->setType(GameObjectType::Solid);
 
-            if (!hitbox)
-                continue;
+            /*
+             * Remove the flags which prevent collision.
+             */
+            object->m_isNoTouch = false;
+            object->m_isDecoration = false;
+            object->m_isDecoration2 = false;
+            object->m_isPassable = false;
 
-            // Match the source transform.
-            hitbox->setRotation(source->getRotation());
-            hitbox->setFlipX(source->isFlipX());
-            hitbox->setFlipY(source->isFlipY());
+            /*
+             * Enable Extended Collision for the object's
+             * existing geometry.
+             */
+            object->m_hasExtendedCollision = true;
 
-            // Calculate the source object's dimensions.
-            auto size = source->getContentSize();
+            /*
+             * Recalculate the object's collision geometry.
+             */
+            object->setObjectRectDirty(true);
+            object->setOrientedRectDirty(true);
+            object->updateOrientedBox();
 
-            float width = size.width * source->getScaleX();
-            float height = size.height * source->getScaleY();
+            changed++;
+        }
 
-            // Normal solid block = 30x30 editor units.
-            float sx = width / 30.f;
-            float sy = height / 30.f;
-
-            if (sx < 0.01f)
-                sx = 0.01f;
-
-            if (sy < 0.01f)
-                sy = 0.01f;
-
-            // Scale the collision block.
-            static_cast<cocos2d::CCNode*>(hitbox)->setScale(
-                sx,
-                sy
-            );
-
-            // Hide the collision block visually.
-            hitbox->setOpacity(0);
-
-            // Update the editor.
-            this->objectMoved(hitbox);
+        if (changed > 0) {
+            FLAlertLayer::create(
+                "Real Hitbox 2.1",
+                "Collision enabled for selected objects.",
+                "OK"
+            )->show();
         }
     }
 };
